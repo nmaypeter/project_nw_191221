@@ -41,59 +41,8 @@ class SeedSelectionDAG:
 ### MIOA, DAG1, DAG2
 
 
-def updateSeedMIOADict(s_set_mioa_dict, k_prod, i_node, s_set, seed_mioa_dict):
-    s_total_set = set(s for k in range(len(s_set)) for s in s_set[k])
-    if set() in s_set:
-        del_list = [(k, s, i) for k in range(len(s_set_mioa_dict)) for s in s_set_mioa_dict[k] for i in s_set_mioa_dict[k][s] if i_node in s_set_mioa_dict[k][s][i][1]]
-        while del_list:
-            k, s, i = del_list.pop()
-            del s_set_mioa_dict[k][s][i]
-    else:
-        s_set_mioa_dict = [{i: {j: s_set_mioa_dict[k][i][j] for j in s_set_mioa_dict[k][i] if i_node not in s_set_mioa_dict[k][i][j][1]} for i in s_set_mioa_dict[k]} for k in range(len(s_set_mioa_dict))]
-
-    s_set_mioa_dict[k_prod][i_node] = {i: seed_mioa_dict[i] for i in seed_mioa_dict if not (s_total_set & set(seed_mioa_dict[i][1]))}
-
-    return s_set_mioa_dict
-
-
-def generateExpMIOA(mioa_dict, s_set):
-    s_set_mioa_dict = [{} for _ in range(len(s_set))]
-    for k in range(len(s_set)):
-        for i in s_set[k]:
-            s_set_mioa_dict = updateSeedMIOADict(s_set_mioa_dict, k, i, s_set, mioa_dict[k][i])
-
-    return s_set_mioa_dict
-
-
-def updateSeedDAGDict(s_set_dag_dict, k_prod, i_node):
-    del_list = []
-
-    k_list = [k for k in range(len(s_set_dag_dict)) if k != k_prod]
-    for k in k_list:
-        for s in s_set_dag_dict[k]:
-            for i in s_set_dag_dict[k][s]:
-                if i_node in s_set_dag_dict[k][s][i][1]:
-                    del_list.append((k, s, i))
-
-    while del_list:
-        k, s, i = del_list.pop()
-        del s_set_dag_dict[k][s][i]
-
-
-def calculateExpectedInf(seed_exp_mioa_dict):
-    exp_inf_dict = [{i: 0.0 for s in seed_exp_mioa_dict[k] for i in seed_exp_mioa_dict[k][s]} for k in range(len(seed_exp_mioa_dict))]
-    for k in range(len(seed_exp_mioa_dict)):
-        for s in seed_exp_mioa_dict[k]:
-            for i in seed_exp_mioa_dict[k][s]:
-                exp_inf_dict[k][i] = 1.0 - (1.0 - exp_inf_dict[k][i]) * (1.0 - seed_exp_mioa_dict[k][s][i][0])
-
-    exp_inf = [round(sum(exp_inf_dict[k][i] for i in exp_inf_dict[k]), 4) for k in range(len(exp_inf_dict))]
-
-    return exp_inf
-
-
 class SeedSelectionMIOA:
-    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list):
+    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, dag_class, r_flag, epw_flag):
         ### graph_dict: (dict) the graph
         ### seed_cost_dict: (dict) the set of cost for seeds
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
@@ -103,6 +52,9 @@ class SeedSelectionMIOA:
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
+        self.dag_class = dag_class
+        self.r_flag = r_flag
+        self.epw_flag = epw_flag
         self.prob_threshold = 0.001
 
     def generateMIOA(self):
@@ -154,133 +106,123 @@ class SeedSelectionMIOA:
                                     source_dict[ii_node] = (ii_prob, i_node)
                                     heap.heappush_max(source_heap, (ii_prob, ii_node))
 
-        return [mioa_dict] * self.num_product
-
-    def updateMIOAEPW(self, mioa_dict):
-        # -- update node's activated probability by product weight --
-        mioa_dict = [{i: {j: (round(mioa_dict[k][i][j][0] * self.product_weight_list[k] ** len(mioa_dict[k][i][j][1]), 4), mioa_dict[k][i][j][1])
-                          for j in mioa_dict[k][i]} for i in mioa_dict[k]} for k in range(self.num_product)]
-        # -- remove influenced nodes which are over diffusion threshold --
-        mioa_dict = [{i: {j: mioa_dict[k][i][j] for j in mioa_dict[k][i] if mioa_dict[k][i][j][0] >= self.prob_threshold} for i in mioa_dict[k]}
-                     for k in range(self.num_product)]
-        # -- remove empty mioa --
-        mioa_dict = [{i: mioa_dict[k][i] for i in mioa_dict[k] if mioa_dict[k][i]} for k in range(self.num_product)]
+        mioa_dict = [mioa_dict] * self.num_product
+        if self.epw_flag:
+            # -- update node's activated probability by product weight --
+            mioa_dict = [{i: {j: (round(mioa_dict[k][i][j][0] * self.product_weight_list[k] ** len(mioa_dict[k][i][j][1]), 4), mioa_dict[k][i][j][1])
+                              for j in mioa_dict[k][i]} for i in mioa_dict[k]} for k in range(self.num_product)]
+            # -- remove influenced nodes which are over diffusion threshold --
+            mioa_dict = [{i: {j: mioa_dict[k][i][j] for j in mioa_dict[k][i] if mioa_dict[k][i][j][0] >= self.prob_threshold} for i in mioa_dict[k]}
+                         for k in range(self.num_product)]
+            # -- remove empty mioa --
+            mioa_dict = [{i: mioa_dict[k][i] for i in mioa_dict[k] if mioa_dict[k][i]} for k in range(self.num_product)]
 
         return mioa_dict
 
-    def generateDAG1(self, s_set_k):
-        # -- s_node in source_dict are influenced by super root --
-        node_rank_dict = {}
-        source_dict = {s_node: 1.0 for s_node in s_set_k}
-        source_heap = [(1.0, s_node) for s_node in s_set_k]
+    def generateDAG1(self, mioa_dict, s_set):
+        dag_dict = [{} for _ in range(self.num_product)]
+        # -- s_node are influenced by super root --
+        s_total_set = set(s for k in range(self.num_product) for s in s_set[k])
+        for k in range(self.num_product):
+            node_rank_dict = {s_node: 1.0 for s_node in s_set[k]}
+            for i in (set(mioa_dict[k]) & s_set[k]):
+                for j in mioa_dict[k][i]:
+                    i_prod, i_MIP = mioa_dict[k][i][j]
+                    if not (set(i_MIP) & s_total_set):
+                        if j in node_rank_dict:
+                            if i_prod <= node_rank_dict[j]:
+                                continue
+                        node_rank_dict[j] = i_prod
 
-        # -- it will not find a better path than the existing MIP --
-        # -- because if this path exists, it should be pop earlier from the heap. --
-        while source_heap:
-            (i_prob, i_node) = heap.heappop_max(source_heap)
+            # -- i_set collect nodes with out-neighbor --
+            i_set = set(i for i in self.graph_dict if i in node_rank_dict)
+            for i in i_set:
+                # -- j_set collect nodes may be passed information from i --
+                j_set = set(j for j in self.graph_dict[i] if j in node_rank_dict and node_rank_dict[i] > node_rank_dict[j])
+                dag_dict[k][i] = {j: self.graph_dict[i][j] for j in j_set}
+        dag_dict = [{i: dag_dict[k][i] for i in dag_dict[k] if dag_dict[k][i]} for k in range(self.num_product)]
 
-            node_rank_dict[i_node] = i_prob
+        return dag_dict
 
-            if i_node in self.graph_dict:
-                for ii_node in self.graph_dict[i_node]:
-                    # -- not yet find MIP from source_node to ii_node --
-                    if ii_node not in node_rank_dict:
-                        ii_prob = round(i_prob * self.graph_dict[i_node][ii_node], 4)
+    def generateDAG2(self, mioa_dict, s_set):
+        dag_dict = [{} for _ in range(self.num_product)]
+        s_total_set = set(s for k in range(self.num_product) for s in s_set[k])
+        for k in range(self.num_product):
+            node_rank_dict = {s_node: 1.0 for s_node in s_total_set}
+            i_path_set = set()
+            for i in s_set[k]:
+                for j in mioa_dict[k][i]:
+                    i_prod, i_MIP = mioa_dict[k][i][j]
+                    if not (set(i_MIP) & s_total_set):
+                        i_path = [i] + i_MIP
+                        for len_path in range(len(i_path) - 1):
+                            i_path_set.add((i_path[len_path], i_path[len_path + 1]))
 
-                        if ii_prob >= self.prob_threshold:
-                            # -- if ii_node is in heap --
-                            if ii_node in source_dict:
-                                ii_prob_d = source_dict[ii_node]
-                                if ii_prob > ii_prob_d:
-                                    source_dict[ii_node] = ii_prob
-                                    source_heap.remove((ii_prob_d, ii_node))
-                                    source_heap.append((ii_prob, ii_node))
-                                    heap.heapify_max(source_heap)
-                            # -- if ii_node is not in heap --
+                        if j in node_rank_dict:
+                            if i_prod <= node_rank_dict[j]:
+                                continue
+                        node_rank_dict[j] = i_prod
+            for i_path in i_path_set:
+                (i_node, ii_node) = i_path
+                if node_rank_dict[i_node] > node_rank_dict[ii_node]:
+                    if i_node not in dag_dict[k]:
+                        dag_dict[k][i_node] = {ii_node: self.graph_dict[i_node][ii_node]}
+                    else:
+                        dag_dict[k][i_node][ii_node] = self.graph_dict[i_node][ii_node]
+
+        dag_dict = [{i: dag_dict[k][i] for i in dag_dict[k] if dag_dict[k][i]} for k in range(self.num_product)]
+
+        return dag_dict
+
+    def calculateExpectedProfit(self, dag_dict, s_set):
+        inf_dict = [{s: 1.0 for s in s_set[k]} for k in range(self.num_product)]
+
+        for k in range(self.num_product):
+            in_dag_dict = {s: {} for s in s_set[k]}
+            for i in dag_dict[k]:
+                for j in dag_dict[k][i]:
+                    if j not in in_dag_dict:
+                        in_dag_dict[j] = {i: dag_dict[k][i][j]}
+                    else:
+                        in_dag_dict[j][i] = dag_dict[k][i][j]
+
+            while in_dag_dict:
+                root_set = set(j for j in in_dag_dict if not len(in_dag_dict[j]))
+                for i in root_set:
+                    del in_dag_dict[i]
+                    if i in dag_dict[k]:
+                        for j in dag_dict[k][i]:
+                            del in_dag_dict[j][i]
+                            ii_prob = round(inf_dict[k][i] * dag_dict[k][i][j] * (self.product_weight_list[k] if self.epw_flag else 1.0), 4)
+                            if j not in inf_dict[k]:
+                                inf_dict[k][j] = ii_prob
                             else:
-                                source_dict[ii_node] = ii_prob
-                                heap.heappush_max(source_heap, (ii_prob, ii_node))
+                                inf_dict[k][j] = 1.0 - (1.0 - inf_dict[k][j]) * (1.0 - ii_prob)
 
-        dag_dict = {i: {} for i in self.graph_dict}
-        # -- i_set collect nodes with out-neighbor --
-        i_set = set(i for i in self.graph_dict if i in node_rank_dict)
-        for i in i_set:
-            # -- j_set collect nodes may be passed information from i --
-            j_set = set(j for j in self.graph_dict[i] if j in node_rank_dict and node_rank_dict[i] > node_rank_dict[j])
-            dag_dict[i] = {j: self.graph_dict[i][j] for j in j_set}
-        dag_dict = {i: dag_dict[i] for i in dag_dict if dag_dict[i]}
+            for s_node in s_set[k]:
+                del inf_dict[k][s_node]
 
-        return dag_dict
+        ep = round(sum(sum(inf_dict[k].values()) * self.product_list[k][0] * (1.0 if self.epw_flag else self.product_weight_list[k])
+                       for k in range(self.num_product)), 4)
 
-    def generateDAG2(self, s_set_k, mioa_dict_k):
-        node_rank_dict = {i: 0.0 for i in self.seed_cost_dict[0]}
-        for s_node in s_set_k:
-            node_rank_dict[s_node] = 1.0
-            for i in mioa_dict_k[s_node]:
-                if mioa_dict_k[s_node][i][0] > node_rank_dict[i]:
-                    node_rank_dict[i] = mioa_dict_k[s_node][i][0]
+        return ep
 
-        dag_dict = {i: {} for i in self.graph_dict}
-        for s_node in s_set_k:
-            for i in mioa_dict_k[s_node]:
-                i_path = [s_node] + mioa_dict_k[s_node][i][1]
-                for len_path in range(len(i_path) - 1):
-                    i_node, ii_node = i_path[len_path], i_path[len_path + 1]
-                    if ii_node not in dag_dict[i_node] and node_rank_dict[i_node] > node_rank_dict[ii_node]:
-                        dag_dict[i_node][ii_node] = self.graph_dict[i_node][ii_node]
+    def generateCelfHeap(self, mioa_dict):
+        celf_heap = []
+        ss = SeedSelectionMIOA(self.graph_dict, self.seed_cost_dict, self.product_list, self.product_weight_list, self.dag_class, self.r_flag, self.epw_flag)
+        for k in range(self.num_product):
+            for i in self.graph_dict:
+                s_set = [set() for _ in range(self.num_product)]
+                s_set[k].add(i)
+                dag_dict = [{} for _ in range(self.num_product)]
+                if self.dag_class == 1:
+                    dag_dict = ss.generateDAG1(mioa_dict, s_set)
+                elif self.dag_class == 2:
+                    dag_dict = ss.generateDAG2(mioa_dict, s_set)
+                ep = ss.calculateExpectedProfit(dag_dict, s_set)
+                heap.heappush_max(celf_heap, (ep, k, i, 0))
 
-        dag_dict = {i: dag_dict[i] for i in dag_dict if dag_dict[i]}
-
-        return dag_dict
-
-    def generateSeedDAGDict(self, dag_dict, s_set_k):
-        sdag_dict = {}
-
-        s_set = set(s for s in s_set_k if s in dag_dict)
-        for s_node in s_set:
-            sdag_dict[s_node] = {}
-            source_dict = {i: (dag_dict[s_node][i], s_node) for i in dag_dict[s_node]}
-            source_dict[s_node] = (1.0, s_node)
-            source_heap = [(dag_dict[s_node][i], i) for i in dag_dict[s_node]]
-            heap.heapify_max(source_heap)
-
-            # -- it will not find a better path than the existing MIP --
-            # -- because if this path exists, it should be pop earlier from the heap. --
-            while source_heap:
-                (i_prob, i_node) = heap.heappop_max(source_heap)
-                i_prev = source_dict[i_node][1]
-
-                # -- find MIP from source_node to i_node --
-                i_path = [i_node, i_prev]
-                while i_prev != s_node:
-                    i_prev = source_dict[i_prev][1]
-                    i_path.append(i_prev)
-                i_path.pop()
-                i_path.reverse()
-
-                sdag_dict[s_node][i_node] = (i_prob, i_path)
-
-                if i_node in dag_dict:
-                    for ii_node in dag_dict[i_node]:
-                        # -- not yet find MIP from source_node to ii_node --
-                        if ii_node not in sdag_dict[s_node]:
-                            ii_prob = round(i_prob * dag_dict[i_node][ii_node], 4)
-
-                            if ii_prob >= self.prob_threshold:
-                                # -- if ii_node is in heap --
-                                if ii_node in source_dict:
-                                    ii_prob_d = source_dict[ii_node][0]
-                                    if ii_prob > ii_prob_d:
-                                        source_dict[ii_node] = (ii_prob, i_node)
-                                        source_heap.remove((ii_prob_d, ii_node))
-                                        source_heap.append((ii_prob, ii_node))
-                                        heap.heapify_max(source_heap)
-                                # -- if ii_node is not in heap --
-                                else:
-                                    source_dict[ii_node] = (ii_prob, i_node)
-                                    heap.heappush_max(source_heap, (ii_prob, ii_node))
-
-        return sdag_dict
+        return celf_heap
 
 ### NG
 
