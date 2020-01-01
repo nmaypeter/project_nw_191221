@@ -1,17 +1,15 @@
 import xlwings as xw
 
-dataset_seq = [1]
+dataset_seq = [1, 2, 3, 4]
 sc_option_seq = [2]
 cm_seq = [1, 2]
 prod_seq = [1, 2]
 wd_seq = [1, 3, 2]
-model_seq = ['mmioaMepw', 'mdag1Mepw', 'mdag2Mepw',
-             'mmioaepw', 'mmioarepw', 'mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
-             'mmioa', 'mmioapw', 'mmioar', 'mmioarpw',
+model_seq = ['mdag1Mepw', 'mdag2Mepw',
+             'mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
              'mdag1', 'mdag1pw', 'mdag1r', 'mdag1rpw',
              'mdag2', 'mdag2pw', 'mdag2r', 'mdag2rpw',
-             'mng', 'mngpw', 'mngr', 'mngrpw',
-             'mbcs', 'mhd', 'mr']
+             'mng', 'mngpw', 'mngr', 'mngrpw', 'mhd', 'mr']
 
 for data_setting in dataset_seq:
     new_dataset_name = 'email' * (data_setting == 1) + 'dnc' * (data_setting == 2) + \
