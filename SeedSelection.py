@@ -186,8 +186,8 @@ class SeedSelectionMIOA:
                     else:
                         in_dag_dict[j][i] = dag_dict[k][i][j]
 
-            while in_dag_dict:
-                root_set = set(j for j in in_dag_dict if not len(in_dag_dict[j]))
+            root_set = set(j for j in in_dag_dict if not len(in_dag_dict[j]))
+            while root_set:
                 for i in root_set:
                     del in_dag_dict[i]
                     if i in dag_dict[k]:
@@ -198,6 +198,7 @@ class SeedSelectionMIOA:
                                 inf_dict[k][j] = ii_prob
                             else:
                                 inf_dict[k][j] = 1.0 - (1.0 - inf_dict[k][j]) * (1.0 - ii_prob)
+                root_set = set(j for j in in_dag_dict if not len(in_dag_dict[j]))
 
             for s_node in s_set[k]:
                 del inf_dict[k][s_node]
