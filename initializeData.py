@@ -1,6 +1,5 @@
+from generateDistribution import *
 from random import choice
-import numpy as np
-from scipy import stats
 
 
 def safe_div(x, y):
@@ -84,7 +83,7 @@ class IniWallet:
         ### dataset_name: (str)
         self.data_name = data_name
         self.data_data_path = 'data/' + data_name + '/data.txt'
-        self.prod_name = prod_name
+        self.product_name = prod_name
         self.product_path = 'item/' + prod_name + '.txt'
         self.wallet_dist_type = wallet_dist_type
         self.wallet_dist_name = 'wallet_' + prod_name.split('_')[1] + '_' + wallet_dist_type
@@ -97,8 +96,6 @@ class IniWallet:
                 (b, c, r, p) = line.split()
                 price_list.append(float(p))
         f.close()
-        max_price = max([price for price in price_list])
-        price_list = [round(price / max_price, 4) for price in price_list]
 
         num_node = 0
         with open(self.data_data_path) as f:
@@ -107,16 +104,9 @@ class IniWallet:
                 num_node = max(int(node1), int(node2), num_node)
         f.close()
 
-        mu, sigma = 0, 1
-        if self.wallet_dist_type == 'm50e25':
-            mu = np.mean(price_list)
-            sigma = (max(price_list) - mu) / 0.6745
-        elif self.wallet_dist_type == 'm99e96':
-            mu = sum(price_list)
-            sigma = abs(min(price_list) - mu) / 3
-        elif self.wallet_dist_type == 'm66e34':
-            mu = sum(price_list) * 0.4167
-            sigma = abs(max(price_list) - mu) / 0.4125
+        wd = list(self.wallet_dist_type)
+        m, e = int(wd[1] + wd[2]), int(wd[4] + wd[5])
+        mu, sigma = generateDistribution(price_list, m, e)
 
         fw = open('data/' + self.data_name + '/' + self.wallet_dist_name + '.txt', 'w')
         for i in range(0, num_node + 1):
