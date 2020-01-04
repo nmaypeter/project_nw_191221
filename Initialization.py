@@ -1,5 +1,4 @@
-import numpy as np
-from scipy import stats
+from generateDistribution import *
 
 
 def safe_div(x, y):
@@ -87,17 +86,17 @@ class Initialization:
         prod_list = [[round(detail / max_price, 4) for detail in item] for item in prod_list]
 
         pw_list = [1.0 for _ in range(len(price_list))]
-        if self.wallet_dist_type in ['m50e25', 'm99e96']:
+        if self.wallet_dist_type in ['m50e25', 'm99e96', 'm66e34']:
             mu, sigma = 0, 1
             if self.wallet_dist_type == 'm50e25':
                 mu = np.mean(price_list)
                 sigma = (max(price_list) - mu) / 0.6745
             elif self.wallet_dist_type == 'm99e96':
                 mu = sum(price_list)
-                sigma = abs(min(price_list) - mu) / 3
+                sigma = abs(min(price_list) - mu) / 2.915
             elif self.wallet_dist_type == 'm66e34':
-                mu = sum(price_list[0]) * 0.4167
-                sigma = abs(max(price_list[0]) - mu) / 0.4125
+                mu = sum(price_list) * 0.4167
+                sigma = abs(max(price_list) - mu) / 0.4125
             X = np.arange(0, 2, 0.001)
             Y = stats.norm.sf(X, mu, sigma)
             pw_list = [round(float(Y[np.argwhere(X == p)]), 4) for p in price_list]
