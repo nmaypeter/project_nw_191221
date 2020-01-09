@@ -18,7 +18,7 @@ class Initialization:
         self.wallet_dist_type = wallet_dist_type
         self.wallet_dict_path = 'data/' + data_name + '/wallet_' + prod_name.split('_')[1] + '_' + wallet_dist_type + '.txt'
 
-    def constructSeedCostDict(self, sc_option):
+    def constructSeedCostDict(self):
         # -- calculate the cost for each seed --
         ### seed_cost_dict[k][i]: (float4) the seed of i-node and k-item
         prod_cost_list = []
@@ -31,7 +31,7 @@ class Initialization:
         prod_cost_list = [round(prod_cost / max_price, 4) for prod_cost in prod_cost_list]
         num_product = len(prod_cost_list)
 
-        seed_cost_dict, deg_dict = [{} for _ in range(num_product)], {}
+        seed_cost_dict, deg_dict = {}, {}
         max_deg = 0
         with open(self.data_degree_path) as f:
             for line in f:
@@ -40,16 +40,8 @@ class Initialization:
                 deg_dict[node] = int(degree)
         f.close()
 
-        alpha = 0.5
-        if sc_option == 'd':
-            alpha = 1
-        elif sc_option == 'p':
-            alpha = 0
-
-        for k in range(num_product):
-            item_cost = prod_cost_list[k]
-            for i in deg_dict:
-                seed_cost_dict[k][i] = round(alpha * safe_div(deg_dict[i], max_deg) + (1 - alpha) * item_cost, 4)
+        for i in deg_dict:
+            seed_cost_dict[i] = safe_div(deg_dict[i], max_deg)
 
         return seed_cost_dict
 
