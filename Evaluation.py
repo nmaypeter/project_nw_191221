@@ -54,14 +54,13 @@ class Evaluation:
 
 
 class EvaluationM:
-    def __init__(self, model_name, dataset_name, product_name, seed_cost_option, cascade_model):
+    def __init__(self, model_name, dataset_name, product_name, cascade_model):
         self.model_name = model_name
         self.dataset_name = dataset_name
         self.new_dataset_name = 'email' * (dataset_name == 'email') + 'dnc' * (dataset_name == 'dnc_email') + \
                                 'Eu' * (dataset_name == 'email_Eu_core') + 'Net' * (dataset_name == 'NetHEPT')
         self.product_name = product_name
         self.new_product_name = 'lphc' * (product_name == 'item_lphc') + 'hplc' * (product_name == 'item_hplc')
-        self.seed_cost_option = seed_cost_option
         self.cascade_model = cascade_model
         self.eva_monte_carlo = 100
 
@@ -69,7 +68,7 @@ class EvaluationM:
         eva_start_time = time.time()
         ini = Initialization(self.dataset_name, self.product_name, wallet_distribution_type)
 
-        seed_cost_dict = ini.constructSeedCostDict(self.seed_cost_option)
+        seed_cost_dict = ini.constructSeedCostDict()
         graph_dict = ini.constructGraphDict(self.cascade_model)
         product_list = ini.constructProductList()[0]
         num_product = len(product_list)
@@ -78,7 +77,7 @@ class EvaluationM:
         total_budget = round(total_cost / 2 ** bi, 4)
 
         eva = Evaluation(graph_dict, product_list, wallet_dict)
-        print('@ evaluation @ ' + self.new_dataset_name + '_' + self.cascade_model + '_' + self.seed_cost_option +
+        print('@ evaluation @ ' + self.new_dataset_name + '_' + self.cascade_model +
               '\t' + self.model_name +
               '\t' + wallet_distribution_type + '_' + self.new_product_name + '_bi' + str(bi))
         sample_pnn_k = [0.0 for _ in range(num_product)]
@@ -104,7 +103,7 @@ class EvaluationM:
         print(result)
         print('------------------------------------------')
 
-        path0 = 'result/' + self.new_dataset_name + '_' + self.cascade_model + '_' + self.seed_cost_option
+        path0 = 'result/' + self.new_dataset_name + '_' + self.cascade_model
         if not os.path.isdir(path0):
             os.mkdir(path0)
         path = path0 + '/' + wallet_distribution_type + '_' + self.new_product_name + '_bi' + str(bi)
@@ -113,7 +112,7 @@ class EvaluationM:
         result_name = path + '/' + self.model_name + '.txt'
 
         fw = open(result_name, 'w')
-        fw.write(self.new_dataset_name + '_' + self.cascade_model + '_' + self.seed_cost_option + '\t' +
+        fw.write(self.new_dataset_name + '_' + self.cascade_model + '\t' +
                  self.model_name + '\t' +
                  wallet_distribution_type + '_' + self.new_product_name + '_bi' + str(bi) + '\n' +
                  'budget_limit = ' + str(total_budget) + '\n' +
