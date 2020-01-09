@@ -42,13 +42,11 @@ class SeedSelectionDAG:
 
 
 class SeedSelectionMIOA:
-    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, dag_class, r_flag, epw_flag):
+    def __init__(self, graph_dict, product_list, product_weight_list, dag_class, r_flag, epw_flag):
         ### graph_dict: (dict) the graph
-        ### seed_cost_dict: (dict) the set of cost for seeds
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
         self.graph_dict = graph_dict
-        self.seed_cost_dict = seed_cost_dict
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
@@ -210,7 +208,7 @@ class SeedSelectionMIOA:
 
     def generateCelfHeap(self, mioa_dict):
         celf_heap = []
-        ss = SeedSelectionMIOA(self.graph_dict, self.seed_cost_dict, self.product_list, self.product_weight_list, self.dag_class, self.r_flag, self.epw_flag)
+        ss = SeedSelectionMIOA(self.graph_dict, self.product_list, self.product_weight_list, self.dag_class, self.r_flag, self.epw_flag)
         for k in range(self.num_product):
             for i in self.graph_dict:
                 s_set = [set() for _ in range(self.num_product)]
@@ -259,7 +257,7 @@ class SeedSelectionNG:
                 for k in range(self.num_product):
                     mg = safe_div(ep * self.product_list[k][0], self.product_list[0][0] * self.product_weight_list[0])
                     if self.r_flag:
-                        mg = safe_div(mg, self.seed_cost_dict[k][i])
+                        mg = safe_div(mg, self.seed_cost_dict[i])
                     celf_item = (mg, k, i, 0)
                     heap.heappush_max(celf_heap, celf_item)
 
@@ -357,7 +355,7 @@ class SeedSelectionBalancedCombinationStrategy:
             if ep > 0:
                 for k in range(self.num_product):
                     mg = safe_div(ep * self.product_list[k][0], self.product_list[0][0] * self.product_weight_list[0])
-                    mg = safe_div(mg, self.seed_cost_dict[k][i])
+                    mg = safe_div(mg, self.seed_cost_dict[i])
                     celf_item = (mg, k, i, 0)
                     heap.heappush_max(Handbill_celf_heap, celf_item)
 
@@ -367,15 +365,13 @@ class SeedSelectionBalancedCombinationStrategy:
 
 
 class SeedSelectionPMIS:
-    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list):
+    def __init__(self, graph_dict, product_list, product_weight_list):
         ### graph_dict: (dict) the graph
-        ### seed_cost_dict[k][i]: (float4) the seed of i-node and k-item
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
         ### product_weight_list: (list) the product weight list
         ### monte: (int) monte carlo times
         self.graph_dict = graph_dict
-        self.seed_cost_dict = seed_cost_dict
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
