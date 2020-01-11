@@ -29,7 +29,6 @@ class Initialization:
                 prod_cost_list.append(float(c))
                 max_price = max(max_price, float(p))
         prod_cost_list = [round(prod_cost / max_price, 4) for prod_cost in prod_cost_list]
-        num_product = len(prod_cost_list)
 
         seed_cost_dict, deg_dict = {}, {}
         max_deg = 0
