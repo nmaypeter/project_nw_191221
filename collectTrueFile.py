@@ -73,5 +73,18 @@ for data_setting in dataset_seq:
                                 os.mkdir(path)
                             dst_name = path + '/' + model_name + '.txt'
                             shutil.copyfile(src_name, dst_name)
+
+                            src_name = 'seed_data/' + \
+                                       new_dataset_name + '_' + cascade_model + '/' + \
+                                       wallet_distribution_type + '_' + new_product_name + '_bi' + str(bi) + '/' + \
+                                       model_name + '_' + str(chosen_index) + '.txt'
+                            path0 = 'seed_dataT/' + new_dataset_name + '_' + cascade_model
+                            if not os.path.isdir(path0):
+                                os.mkdir(path0)
+                            path = path0 + '/' + wallet_distribution_type + '_' + new_product_name + '_bi' + str(bi)
+                            if not os.path.isdir(path):
+                                os.mkdir(path)
+                            dst_name = path + '/' + model_name + '.txt'
+                            shutil.copyfile(src_name, dst_name)
                         except FileNotFoundError:
                             continue
