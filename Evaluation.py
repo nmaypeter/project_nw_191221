@@ -73,7 +73,7 @@ class EvaluationM:
         product_list = ini.constructProductList()[0]
         num_product = len(product_list)
         wallet_dict = ini.constructWalletDict()
-        total_cost = sum(seed_cost_dict[k][i] for i in seed_cost_dict[0] for k in range(num_product))
+        total_cost = sum(seed_cost_dict[i] for i in seed_cost_dict) * num_product
         total_budget = round(total_cost / 2 ** bi, 4)
 
         eva = Evaluation(graph_dict, product_list, wallet_dict)
@@ -91,7 +91,7 @@ class EvaluationM:
         sample_pnn_k = [round(sample_pnn_k / self.eva_monte_carlo, 4) for sample_pnn_k in sample_pnn_k]
         sample_pro_k = [round(sample_pnn_k[k] * product_list[k][0], 4) for k in range(num_product)]
         sample_sn_k = [len(sample_sn_k) for sample_sn_k in sample_seed_set]
-        sample_bud_k = [round(sum(seed_cost_dict[k][i] for i in sample_seed_set[k]), 4) for k in range(num_product)]
+        sample_bud_k = [round(sum(seed_cost_dict[i] for i in sample_seed_set[k]), 4) for k in range(num_product)]
         sample_bud = round(sum(sample_bud_k), 4)
         sample_pro = round(sum(sample_pro_k), 4)
         seed_diffusion_list = [(seed_diffusion_flag, round(seed_diffusion_dict_k[seed_diffusion_flag] / self.eva_monte_carlo, 4)) for seed_diffusion_flag in seed_diffusion_dict_k]
