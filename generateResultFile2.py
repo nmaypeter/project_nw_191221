@@ -53,7 +53,7 @@ for data_setting in dataset_seq:
                             except FileNotFoundError:
                                 d[times] = ''
 
-                        if model_name == 'mdag1repw' or model_name == 'mdag2repw':
+                        if model_name == 'mdag1repw' or model_name == 'mdag2repw' or model_name == 'mdag1Mrepw' or model_name == 'mdag2Mrepw':
                             chosen_index = list(d.keys())[list(d.values()).index(sorted(list(d.values()), reverse=True)[0])]
                         else:
                             if 'epw' in model_name or 'pw' in model_name:
