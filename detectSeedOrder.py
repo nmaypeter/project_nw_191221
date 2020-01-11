@@ -22,8 +22,8 @@ if __name__ == '__main__':
                        'email_Eu_core' * (data_setting == 3) + 'NetHEPT' * (data_setting == 4)
         new_dataset_name = 'email' * (data_setting == 1) + 'dnc' * (data_setting == 2) + \
                            'Eu' * (data_setting == 3) + 'Net' * (data_setting == 4)
-        order_list = []
         for bi in [i for i in range(10, 6, -1)]:
+            order_list = []
             for cm in cm_seq:
                 cascade_model = 'ic' * (cm == 1) + 'wc' * (cm == 2)
                 for prod_setting in prod_seq:
@@ -136,7 +136,7 @@ if __name__ == '__main__':
                             sheet = wb.sheets[sheet_name]
                             sheet.cells(1, "A").value = r_list
 
-            fw = open('analysis/' + new_dataset_name + '_' + str(bi) + '.txt', 'w')
+            fw = open('analysis/' + new_dataset_name + '_bi' + str(bi) + '.txt', 'w')
             for ol_item in order_list:
                 fw.write(ol_item)
             fw.close()
