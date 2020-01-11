@@ -41,11 +41,11 @@ class Model:
         mioa_dict = ssmioa_model.generateMIOA()
         celf_heap = ssmioa_model.generateCelfHeap(mioa_dict)
         if r_flag:
-            if M_flag:
-                celf_heap = celf_heap[:int(len(celf_heap) / 4)]
             celf_heap = [(safe_div(celf_item[0], seed_cost_dict[celf_item[2]]), celf_item[1], celf_item[2], 0)
                          for celf_item in celf_heap]
             heap.heapify_max(celf_heap)
+            if M_flag:
+                celf_heap = celf_heap[:int(len(celf_heap) / 4)]
 
         ss_acc_time = round(time.time() - ss_start_time, 4)
         temp_sequence = [[ss_acc_time, now_budget, now_profit, seed_set, celf_heap]]
