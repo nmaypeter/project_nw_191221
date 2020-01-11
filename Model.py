@@ -56,7 +56,7 @@ class Model:
             total_budget = safe_div(total_cost, 2 ** now_b_iter)
             [ss_acc_time, now_budget, now_profit, seed_set, celf_heap] = temp_sequence.pop()
             seed_data = temp_seed_data.pop()
-            print('@ selection\t' + self.model_name + '@ ' + self.new_dataset_name + '_' + self.cascade_model +
+            print('@ selection\t' + self.model_name + ' @ ' + self.new_dataset_name + '_' + self.cascade_model +
                   '\t' + self.wallet_distribution_type + '_' + self.new_product_name + '_bi' + str(now_b_iter) + ', budget = ' + str(total_budget))
 
             celf_heap_c = []
