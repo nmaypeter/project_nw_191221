@@ -42,7 +42,7 @@ class Model:
         celf_heap = ssmioa_model.generateCelfHeap(mioa_dict)
         if r_flag:
             if M_flag:
-                celf_heap = celf_heap[:int(len(celf_heap) / 2)]
+                celf_heap = celf_heap[:int(len(celf_heap) / 4)]
             celf_heap = [(safe_div(celf_item[0], seed_cost_dict[celf_item[2]]), celf_item[1], celf_item[2], 0)
                          for celf_item in celf_heap]
             heap.heapify_max(celf_heap)
