@@ -4,8 +4,7 @@ dataset_seq = [1, 2, 3, 4]
 cm_seq = [1, 2]
 prod_seq = [1, 2]
 wd_seq = [1, 3, 2]
-model_seq = ['mdag1Mepw', 'mdag2Mepw',
-             'mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
+model_seq = ['mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
              'mdag1', 'mdag1pw', 'mdag1r', 'mdag1rpw',
              'mdag2', 'mdag2pw', 'mdag2r', 'mdag2rpw',
              'mng', 'mngpw', 'mngr', 'mngrpw', 'mhd', 'mr']
@@ -53,7 +52,7 @@ for data_setting in dataset_seq:
                             except FileNotFoundError:
                                 d[times] = ''
 
-                        if model_name == 'mdag1repw' or model_name == 'mdag2repw' or model_name == 'mdag1Mrepw' or model_name == 'mdag2Mrepw':
+                        if model_name == 'mdag1repw' or model_name == 'mdag2repw':
                             chosen_index = list(d.keys())[list(d.values()).index(sorted(list(d.values()), reverse=True)[0])]
                         else:
                             if 'epw' in model_name or 'pw' in model_name:
