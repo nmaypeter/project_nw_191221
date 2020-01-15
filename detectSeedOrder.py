@@ -10,8 +10,7 @@ if __name__ == '__main__':
     cm_seq = [1, 2]
     prod_seq = [1, 2]
     wd_seq = [1, 2, 3]
-    model_seq = ['mdag1Mepw', 'mdag2Mepw',
-                 'mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
+    model_seq = ['mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
                  'mdag1', 'mdag1pw', 'mdag1r', 'mdag1rpw',
                  'mdag2', 'mdag2pw', 'mdag2r', 'mdag2rpw',
                  'mng', 'mngpw', 'mngr', 'mngrpw', 'mhd', 'mr']
