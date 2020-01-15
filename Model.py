@@ -228,7 +228,7 @@ class Model:
                 for wallet_distribution_type in self.wd_seq:
                     eva_model.evaluate(bi, wallet_distribution_type, seed_set_sequence[now_bi_index], ss_time_sequence[now_bi_index])
 
-    def model_ng(self, r_flag):
+    def model_ng(self, r_flag, epw_flag=False):
         ini = Initialization(self.dataset_name, self.product_name, self.wallet_distribution_type)
         seed_cost_dict = ini.constructSeedCostDict()
         graph_dict = ini.constructGraphDict(self.cascade_model)
@@ -239,8 +239,8 @@ class Model:
         seed_set_sequence = [-1 for _ in range(len(self.budget_iteration))]
         ss_time_sequence = [-1 for _ in range(len(self.budget_iteration))]
         seed_data_sequence = [-1 for _ in range(len(self.budget_iteration))]
-        ssng_model = SeedSelectionNG(graph_dict, seed_cost_dict, product_list, product_weight_list, r_flag=r_flag)
-        diff_model = Diffusion(graph_dict, product_list, product_weight_list)
+        ssng_model = SeedSelectionNG(graph_dict, seed_cost_dict, product_list, product_weight_list, r_flag, epw_flag)
+        diff_model = Diffusion(graph_dict, product_list, product_weight_list, epw_flag)
 
         ss_start_time = time.time()
         bud_iteration = self.budget_iteration.copy()
