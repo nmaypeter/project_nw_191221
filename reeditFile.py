@@ -4,10 +4,11 @@ dataset_seq = [1, 2, 3, 4]
 cm_seq = [1, 2]
 prod_seq = [1, 2]
 wd_seq = [1, 2, 3]
-model_seq = ['mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
+model_seq = ['mMdagepw', 'mMdagrepw', 'mMdag', 'mMdagpw', 'mMdagr', 'mMdagrpw',
+             'mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
              'mdag1', 'mdag1pw', 'mdag1r', 'mdag1rpw',
              'mdag2', 'mdag2pw', 'mdag2r', 'mdag2rpw',
-             'mng', 'mngpw', 'mngr', 'mngrpw', 'mhd', 'mr']
+             'mngepw', 'mngerpw', 'mng', 'mngpw', 'mngr', 'mngrpw', 'mhd', 'mr']
 
 for data_setting in dataset_seq:
     dataset_name = 'email' * (data_setting == 1) + 'dnc_email' * (data_setting == 2) + \
