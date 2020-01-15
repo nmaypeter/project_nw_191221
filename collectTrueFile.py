@@ -5,8 +5,7 @@ dataset_seq = [1, 2, 3, 4]
 cm_seq = [1, 2]
 prod_seq = [1, 2]
 wd_seq = [1, 3, 2]
-model_seq = ['mdag1Mepw', 'mdag2Mepw',
-             'mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
+model_seq = ['mdag1epw', 'mdag1repw', 'mdag2epw', 'mdag2repw',
              'mdag1', 'mdag1pw', 'mdag1r', 'mdag1rpw',
              'mdag2', 'mdag2pw', 'mdag2r', 'mdag2rpw',
              'mng', 'mngpw', 'mngr', 'mngrpw', 'mhd', 'mr']
@@ -72,7 +71,17 @@ for data_setting in dataset_seq:
                             if not os.path.isdir(path):
                                 os.mkdir(path)
                             dst_name = path + '/' + model_name + '.txt'
-                            shutil.copyfile(src_name, dst_name)
+
+                            r = []
+                            with open(src_name) as f:
+                                for line in f:
+                                    r.append(line)
+                            r[0] = new_dataset_name + '_' + cascade_model + '\t' + model_name.split('_')[0] + '\t' + wallet_distribution_type + '_' + new_product_name + '_bi' + str(bi) + '\n'
+                            f.close()
+                            fw = open(dst_name, 'w')
+                            for line in r:
+                                fw.write(line)
+                            fw.close()
 
                             src_name = 'seed_data/' + \
                                        new_dataset_name + '_' + cascade_model + '/' + \
