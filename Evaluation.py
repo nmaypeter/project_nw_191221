@@ -73,7 +73,7 @@ class EvaluationM:
         product_list = ini.constructProductList()[0]
         num_product = len(product_list)
         wallet_dict = ini.constructWalletDict()
-        total_cost = sum(seed_cost_dict[i] for i in seed_cost_dict) * num_product
+        total_cost = sum(seed_cost_dict[i] for i in seed_cost_dict)
         total_budget = round(total_cost / 2 ** bi, 4)
 
         eva = Evaluation(graph_dict, product_list, wallet_dict)
