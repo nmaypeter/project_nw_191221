@@ -20,16 +20,6 @@ class Initialization:
 
     def constructSeedCostDict(self):
         # -- calculate the cost for each seed --
-        ### seed_cost_dict[k][i]: (float4) the seed of i-node and k-item
-        prod_cost_list = []
-        max_price = 0.0
-        with open(self.product_path) as f:
-            for line in f:
-                (b, c, r, p) = line.split()
-                prod_cost_list.append(float(c))
-                max_price = max(max_price, float(p))
-        prod_cost_list = [round(prod_cost / max_price, 4) for prod_cost in prod_cost_list]
-
         seed_cost_dict, deg_dict = {}, {}
         max_deg = 0
         with open(self.data_degree_path) as f:
@@ -76,7 +66,9 @@ class Initialization:
         max_price = max([price for price in price_list])
         prod_list = [[round(detail / max_price, 4) for detail in item] for item in prod_list]
 
+        # -- if not use product weight --
         pw_list = [1.0 for _ in range(len(price_list))]
+        # -- else --
         if self.wallet_dist_type in ['m50e25', 'm99e96', 'm66e34']:
             mu, sigma = 0, 1
             if self.wallet_dist_type == 'm50e25':
