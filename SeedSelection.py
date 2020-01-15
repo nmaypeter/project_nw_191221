@@ -3,20 +3,23 @@ from Diffusion import *
 import heap
 
 
-class SeedSelectionDAG:
-    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list):
+class SeedSelectionMdag:
+    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, r_flag, epw_flag):
         ### graph_dict: (dict) the graph
-        ### seed_cost_dict: (dict) the set of cost for seeds
+        ### seed_cost_dict[i]: (float4) the seed of i-node and k-item
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
+        ### product_weight_list: (list) the product weight list
         self.graph_dict = graph_dict
         self.seed_cost_dict = seed_cost_dict
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
+        self.r_flag = r_flag
+        self.epw_flag = epw_flag
         self.prob_threshold = 0.001
 
-    def calculateExpectedInf(self, s_set):
+    def calculateExpectedProfit(self, s_set):
         s_total_set = set(s for k in range(self.num_product) for s in s_set[k])
         inf_list = [0.0 for _ in range(self.num_product)]
 
@@ -29,24 +32,47 @@ class SeedSelectionDAG:
                     in_set = set(in_node for in_node in inf_set if i_node in self.graph_dict[in_node])
                     i_prod = 0.0
                     for in_node in in_set:
-                        i_prod = 1.0 - (1.0 - i_prod) * (1.0 - self.graph_dict[in_node][i_node] * inf_dict[in_node])
+                        i_prod = 1.0 - (1.0 - i_prod) * (1.0 - self.graph_dict[in_node][i_node] * inf_dict[in_node] * (self.product_weight_list[k] if self.epw_flag else 1.0))
                     inf_dict2[i_node] = round(i_prod, 4) if round(i_prod, 4) >= self.prob_threshold else 0.0
-                inf_set2 = set(i_node2 for i_node2 in inf_dict2 if i_node2 in self.graph_dict)
+                inf_set2 = set(i_node2 for i_node2 in inf_dict2 if i_node2 in self.graph_dict) if sum(inf_dict2.values()) != 0.0 else set()
                 i_set = set(i_node for s_node in inf_set2 for i_node in self.graph_dict[s_node] if i_node not in inf_dict and i_node not in inf_dict2 and i_node not in s_total_set)
                 inf_dict, inf_dict2 = {**inf_dict, **inf_dict2}, {}
             inf_list[k] = round(sum(inf_dict.values()) - len(s_set[k]), 4)
 
-        return inf_list
+        ep = round(sum(inf_list[k] * self.product_list[k][0] * (1.0 if self.epw_flag else self.product_weight_list[k])
+                       for k in range(self.num_product)), 4)
+
+        return ep
+
+    def generateCelfHeap(self):
+        celf_heap = []
+        ss = SeedSelectionMdag(self.graph_dict, self.seed_cost_dict, self.product_list, self.product_weight_list, self.r_flag, self.epw_flag)
+        for k in range(self.num_product):
+            for i in self.graph_dict:
+                s_set = [set() for _ in range(self.num_product)]
+                s_set[k].add(i)
+                ep = ss.calculateExpectedProfit(s_set)
+
+                if ep > 0:
+                    if self.r_flag:
+                        ep = safe_div(ep, self.seed_cost_dict[i])
+                    celf_item = (ep, k, i, 0)
+                    heap.heappush_max(celf_heap, celf_item)
+
+        return celf_heap
 
 ### MIOA, DAG1, DAG2
 
 
 class SeedSelectionMIOA:
-    def __init__(self, graph_dict, product_list, product_weight_list, dag_class, r_flag, epw_flag):
+    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, dag_class, r_flag, epw_flag):
         ### graph_dict: (dict) the graph
+        ### seed_cost_dict[i]: (float4) the seed of i-node and k-item
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
+        ### product_weight_list: (list) the product weight list
         self.graph_dict = graph_dict
+        self.seed_cost_dict = seed_cost_dict
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
@@ -208,7 +234,7 @@ class SeedSelectionMIOA:
 
     def generateCelfHeap(self, mioa_dict):
         celf_heap = []
-        ss = SeedSelectionMIOA(self.graph_dict, self.product_list, self.product_weight_list, self.dag_class, self.r_flag, self.epw_flag)
+        ss = SeedSelectionMIOA(self.graph_dict, self.seed_cost_dict, self.product_list, self.product_weight_list, self.dag_class, self.r_flag, self.epw_flag)
         for k in range(self.num_product):
             for i in self.graph_dict:
                 s_set = [set() for _ in range(self.num_product)]
@@ -219,7 +245,12 @@ class SeedSelectionMIOA:
                 elif self.dag_class == 2:
                     dag_dict = ss.generateDAG2(mioa_dict, s_set)
                 ep = ss.calculateExpectedProfit(dag_dict, s_set)
-                heap.heappush_max(celf_heap, (ep, k, i, 0))
+
+                if ep > 0:
+                    if self.r_flag:
+                        ep = safe_div(ep, self.seed_cost_dict[i])
+                    celf_item = (ep, k, i, 0)
+                    heap.heappush_max(celf_heap, celf_item)
 
         return celf_heap
 
@@ -229,7 +260,7 @@ class SeedSelectionMIOA:
 class SeedSelectionNG:
     def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, r_flag):
         ### graph_dict: (dict) the graph
-        ### seed_cost_dict[k][i]: (float4) the seed of i-node and k-item
+        ### seed_cost_dict[i]: (float4) the seed of i-node and k-item
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
         ### product_weight_list: (list) the product weight list
@@ -319,7 +350,7 @@ def SpiltHeuristicsSet(data_name):
 class SeedSelectionBalancedCombinationStrategy:
     def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list):
         ### graph_dict: (dict) the graph
-        ### seed_cost_dict[k][i]: (float4) the seed of i-node and k-item
+        ### seed_cost_dict[i]: (float4) the seed of i-node and k-item
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
         ### product_weight_list: (list) the product weight list
