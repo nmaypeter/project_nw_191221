@@ -258,7 +258,7 @@ class SeedSelectionMIOA:
 
 
 class SeedSelectionNG:
-    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, r_flag):
+    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, r_flag, epw_flag):
         ### graph_dict: (dict) the graph
         ### seed_cost_dict[i]: (float4) the seed of i-node and k-item
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
@@ -271,6 +271,7 @@ class SeedSelectionNG:
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
         self.r_flag = r_flag
+        self.epw_flag = epw_flag
         self.monte = 100
 
     def generateCelfHeap(self):
@@ -278,7 +279,7 @@ class SeedSelectionNG:
         ### celf_item: (list) (mg, k_prod, i_node, flag)
         celf_heap = []
 
-        diff = Diffusion(self.graph_dict, self.product_list, self.product_weight_list)
+        diff = Diffusion(self.graph_dict, self.product_list, self.product_weight_list, self.epw_flag)
         for i in self.graph_dict:
             s_set = [set() for _ in range(self.num_product)]
             s_set[0].add(i)
@@ -348,7 +349,7 @@ def SpiltHeuristicsSet(data_name):
 
 
 class SeedSelectionBalancedCombinationStrategy:
-    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list):
+    def __init__(self, graph_dict, seed_cost_dict, product_list, product_weight_list, epw_flag):
         ### graph_dict: (dict) the graph
         ### seed_cost_dict[i]: (float4) the seed of i-node and k-item
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
@@ -359,6 +360,7 @@ class SeedSelectionBalancedCombinationStrategy:
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
+        self.epw_flag = epw_flag
 
     def generateCelfHeap(self, data_name):
         # -- calculate expected profit for all combinations of nodes and products --
@@ -366,7 +368,7 @@ class SeedSelectionBalancedCombinationStrategy:
         Billboard_set, Handbill_set = SpiltHeuristicsSet(data_name)
         Billboard_celf_heap, Handbill_celf_heap = [], []
 
-        diff = Diffusion(self.graph_dict, self.product_list, self.product_weight_list)
+        diff = Diffusion(self.graph_dict, self.product_list, self.product_weight_list, self.epw_flag)
         for i in Billboard_set:
             s_set = [set() for _ in range(self.num_product)]
             s_set[0].add(i)
@@ -396,7 +398,7 @@ class SeedSelectionBalancedCombinationStrategy:
 
 
 class SeedSelectionPMIS:
-    def __init__(self, graph_dict, product_list, product_weight_list):
+    def __init__(self, graph_dict, product_list, product_weight_list, epw_flag):
         ### graph_dict: (dict) the graph
         ### product_list: (list) the set to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
@@ -406,6 +408,7 @@ class SeedSelectionPMIS:
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
+        self.epw_flag = epw_flag
         self.monte = 10
 
     def generateCelfHeap(self):
@@ -413,7 +416,7 @@ class SeedSelectionPMIS:
         ### celf_item: (list) (mg, k_prod, i_node, flag)
         celf_heap = [[] for _ in range(self.num_product)]
 
-        diff_ss = Diffusion(self.graph_dict, self.product_list, self.product_weight_list)
+        diff_ss = Diffusion(self.graph_dict, self.product_list, self.product_weight_list, self.epw_flag)
         for i in self.graph_dict:
             s_set = [set() for _ in range(self.num_product)]
             s_set[0].add(i)
@@ -434,7 +437,7 @@ class SeedSelectionPMIS:
         bud_index, bud_bound_index = [len(k) - 1 for k in c_matrix], [0 for _ in range(self.num_product)]
         MCKP_list = []
 
-        diff = Diffusion(self.graph_dict, self.product_list, self.product_weight_list)
+        diff = Diffusion(self.graph_dict, self.product_list, self.product_weight_list, self.epw_flag)
         while bud_index != bud_bound_index:
             ### bud_pmis: (float) the budget in this pmis execution
             bud_pmis = sum(c_matrix[k][bud_index[k]] for k in range(self.num_product))
