@@ -3,7 +3,7 @@ import random
 
 
 class Diffusion:
-    def __init__(self, graph_dict, product_list, product_weight_list):
+    def __init__(self, graph_dict, product_list, product_weight_list, epw_flag):
         ### graph_dict: (dict) the graph
         ### product_list: (list) the list to record products [k's profit, k's cost, k's price]
         ### num_product: (int) the kinds of products
@@ -13,6 +13,7 @@ class Diffusion:
         self.product_list = product_list
         self.num_product = len(product_list)
         self.product_weight_list = product_weight_list
+        self.epw_flag = epw_flag
         self.prob_threshold = 0.001
 
     def getSeedSetProfit(self, s_set):
@@ -33,7 +34,7 @@ class Diffusion:
 
                 i_dict = self.graph_dict[i_node]
                 for ii_node in i_dict:
-                    if random.random() > i_dict[ii_node]:
+                    if random.random() > i_dict[ii_node] * (product_weight if self.epw_flag else 1.0):
                         continue
 
                     if ii_node in a_n_set:
@@ -41,9 +42,9 @@ class Diffusion:
                     a_n_set.add(ii_node)
 
                     # -- purchasing --
-                    ep += benefit * product_weight
+                    ep += benefit * (product_weight if not self.epw_flag else 1.0)
 
-                    ii_acc_prob = round(i_acc_prob * i_dict[ii_node], 4)
+                    ii_acc_prob = round(i_acc_prob * i_dict[ii_node] * (product_weight if self.epw_flag else 1.0), 4)
                     if ii_acc_prob > self.prob_threshold:
                         a_n_sequence2.append((ii_node, ii_acc_prob))
 
