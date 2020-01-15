@@ -41,5 +41,7 @@ if __name__ == '__main__':
                         Model('mdag1rpw_' + str(times), dataset_name, product_name, cascade_model, wallet_distribution_type).model_dag(1, r_flag=True)
                         Model('mdag2pw_' + str(times), dataset_name, product_name, cascade_model, wallet_distribution_type).model_dag(2, r_flag=False)
                         Model('mdag2rpw_' + str(times), dataset_name, product_name, cascade_model, wallet_distribution_type).model_dag(2, r_flag=True)
+                        Model('mngepw_' + str(times), dataset_name, product_name, cascade_model, wallet_distribution_type).model_ng(r_flag=False, epw_flag=True)
+                        Model('mngrepw_' + str(times), dataset_name, product_name, cascade_model, wallet_distribution_type).model_ng(r_flag=True, epw_flag=True)
                         Model('mngpw_' + str(times), dataset_name, product_name, cascade_model, wallet_distribution_type).model_ng(r_flag=False)
                         Model('mngrpw_' + str(times), dataset_name, product_name, cascade_model, wallet_distribution_type).model_ng(r_flag=True)
